@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khánh & Huyền - Love Counter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff4b72;
+      --primary-light: #ff758c;
+      --primary-dark: #e60039;
+      --bg-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #feada6 100%);
+      --glass-bg: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --shadow: 0 12px 32px 0 rgba(255, 75, 114, 0.18);
+      --text-main: #2c2c2c;
+      --text-sub: #666666;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Floating Background Particles */
+    .bg-hearts {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .heart-particle {
+      position: absolute;
+      bottom: -10%;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 20px;
+      animation: floatUp 8s linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+      20% { opacity: 0.8; }
+      100% { transform: translateY(-110vh) rotate(360deg) scale(1.2); opacity: 0; }
+    }
+
+    /* Interactive Burst Heart Particle */
+    .burst-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 999;
+      font-size: 24px;
+      animation: heartBurst 1.2s ease-out forwards;
+    }
+
+    @keyframes heartBurst {
+      0% { opacity: 1; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--rot)); }
+    }
+
+    /* Main Container */
+    .widget-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      text-align: center;
+    }
+
+    /* Control Buttons Placement */
+    .btn-music-left {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+    }
+
+    .btn-settings-right {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 117, 140, 0.3);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      color: #555;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.2s;
+    }
+
+    .control-btn:active { transform: scale(0.9); }
+    .control-btn.playing { animation: spinMusic 3s linear infinite; background: #ffe6eb; }
+
+    @keyframes spinMusic {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Header & Avatars Section */
+    .couples-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      position: relative;
+      padding-top: 10px;
+    }
+
+    .avatar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .avatar-frame {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, var(--primary), #ffb6c1);
+      box-shadow: 0 6px 16px rgba(255, 75, 114, 0.25);
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background-color: #fff;
+      display: block;
+    }
+
+    .partner-name {
+      font-weight: 700;
+      font-size: 18px;
+      color: #1f1f1f;
+    }
+
+    .heart-center {
+      position: relative;
+      font-size: 32px;
+      cursor: pointer;
+      user-select: none;
+      animation: pulseHeart 1.4s ease-in-out infinite;
+      z-index: 2;
+      margin: 0 4px;
+      transition: transform 0.1s;
+    }
+
+    .heart-center:active { transform: scale(1.3); }
+
+    @keyframes pulseHeart {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.22); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.12); }
+      70% { transform: scale(1); }
+    }
+
+    /* Counter Hero Box */
+    .counter-hero {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,240,243,0.95));
+      border: 1.5px solid rgba(255, 182, 193, 0.5);
+      border-radius: 20px;
+      padding: 18px 14px;
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.8);
+    }
+
+    .hero-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .total-days-box {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      line-height: 1;
+    }
+
+    .days-val {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -1px;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+
+    .days-unit {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Time Grid: Year - Month - Day */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .time-card {
+      background: #ffffff;
+      padding: 10px 4px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 117, 140, 0.25);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .time-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: #333;
+    }
+
+    .time-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Love Quote */
+    .quote-box {
+      font-family: 'Dancing Script', cursive;
+      font-size: 20px;
+      font-weight: 700;
+      color: #d62839;
+      line-height: 1.4;
+      padding: 0 8px;
+    }
+
+    /* Countdowns Section */
+    .countdowns-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .countdown-card {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    .cd-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cd-icon {
+      font-size: 20px;
+      width: 34px;
+      height: 34px;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      flex-shrink: 0;
+    }
+
+    .cd-text-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .cd-text-sub {
+      font-size: 11px;
+      color: #777;
+    }
+
+    .cd-badge {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px rgba(255, 75, 114, 0.25);
+    }
+
+    .cd-badge.today {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      animation: pulseBadge 1s infinite alternate;
+    }
+
+    @keyframes pulseBadge {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+
+    .start-date-tag {
+      font-size: 12px;
+      color: #777;
+      font-weight: 600;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .modal-title { font-size: 16px; font-weight: 700; color: #222; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #555; }
+    .form-group input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; outline: none; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .btn-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-save { background: var(--primary); color: #fff; }
+    .btn-cancel { background: #eee; color: #555; }
+  </style>
+</head>
+<body>
+
+  <!-- Background Music: Chúng Ta Của Hiện Tại (Piano/Instrumental) -->
+  <audio id="bgAudio" loop preload="auto">
+    <source src="https://files.catbox.moe/9p9x0w.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Background Floating Hearts Particles -->
+  <div class="bg-hearts" id="heartsBg"></div>
+
+  <!-- Main Love Widget -->
+  <div class="widget-card">
+    
+    <!-- Music Button on Top Left -->
+    <button class="control-btn btn-music-left" id="musicBtn" title="Phát/Tắt Nhạc">🎵</button>
+    
+    <!-- Settings Button on Top Right -->
+    <button class="control-btn btn-settings-right" id="openSettings" title="Cài đặt">⚙️</button>
+
+    <!-- Couple Avatars Header -->
+    <div class="couples-header">
+      <div class="avatar-wrapper">
+        <div class="avatar-frame">
+          <img id="imgMale" src="https://cdn-media.sforum.vn/storage/app/media/anhthem/meme-tinh-yeu-61.jpg" alt="Khánh" class="avatar-img">
+        </div>
+        <span class="partner-name" id="nameMale">Khánh</span>
+      </div>
+
+      <!-- Clickable Interactive Heart -->
+      <div class="heart-center" id="interactiveHeart" title="Bấm vào đây để bắn tim!">❤️</div>
+
+      <div class="avatar-wrapper">
+        <div class="avatar-frame">
+          <img id="imgFemale" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqijrBOF5VjYNDdYOz5QfTgH6IZaX6nEHAYBD2xnY3WSKbHyzbLPkIuAo&s=10" alt="Huyền" class="avatar-img">
+        </div>
+        <span class="partner-name" id="nameFemale">Huyền</span>
+      </div>
+    </div>
+
+    <!-- Main Love Days Counter -->
+    <div class="counter-hero">
+      <div class="hero-title">Đã Bên Nhau</div>
+      <div class="total-days-box">
+        <span class="days-val" id="totalDays">0</span>
+        <span class="days-unit">ngày</span>
+      </div>
+
+      <!-- Time Grid Breakdown -->
+      <div class="time-grid">
+        <div class="time-card">
+          <span class="time-num" id="subYears">0</span>
+          <span class="time-label">Năm</span>
+        </div>
+        <div class="time-card">
+          <span class="time-num" id="subMonths">0</span>
+          <span class="time-label">Tháng</span>
+        </div>
+        <div class="time-card">
+          <span class="time-num" id="subDays">0</span>
+          <span class="time-label">Ngày</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Love Quote -->
+    <div class="quote-box" id="loveQuote">
+      "Trong hàng triệu người trên thế giới, anh thật may mắn khi tìm thấy em."
+    </div>
+
+    <!-- Countdowns Section -->
+    <div class="countdowns-container">
+      
+      <!-- Cột mốc 50 ngày tiếp theo -->
+      <div class="countdown-card" style="background: rgba(255, 235, 240, 0.85); border-color: rgba(255, 182, 193, 0.8);">
+        <div class="cd-info">
+          <div class="cd-icon">🏆</div>
+          <div>
+            <div class="cd-text-title" id="milestoneTitle">Cột mốc tiếp theo</div>
+            <div class="cd-text-sub" id="milestoneSub">---</div>
+          </div>
+        </div>
+        <div class="cd-badge" id="milestoneDays">-- ngày</div>
+      </div>
+
+      <!-- Sinh nhật Khánh -->
+      <div class="countdown-card">
+        <div class="cd-info">
+          <div class="cd-icon">🎂</div>
+          <div>
+            <div class="cd-text-title">Sinh nhật <span id="cdNameMale">Khánh</span></div>
+            <div class="cd-text-sub">24/12/2001</div>
+          </div>
+        </div>
+        <div class="cd-badge" id="cdDaysMale">-- ngày</div>
+      </div>
+
+      <!-- Sinh nhật Huyền -->
+      <div class="countdown-card">
+        <div class="cd-info">
+          <div class="cd-icon">👑</div>
+          <div>
+            <div class="cd-text-title">Sinh nhật <span id="cdNameFemale">Huyền</span></div>
+            <div class="cd-text-sub">01/11/2004</div>
+          </div>
+        </div>
+        <div class="cd-badge" id="cdDaysFemale">-- ngày</div>
+      </div>
+
+      <!-- Ngày lễ sắp tới -->
+      <div class="countdown-card">
+        <div class="cd-info">
+          <div class="cd-icon" id="holidayIcon">🎉</div>
+          <div>
+            <div class="cd-text-title" id="holidayTitle">Ngày lễ sắp tới</div>
+            <div class="cd-text-sub" id="holidaySub">---</div>
+          </div>
+        </div>
+        <div class="cd-badge" id="holidayDays">-- ngày</div>
+      </div>
+
+    </div>
+
+    <!-- Start Date Display -->
+    <div class="start-date-tag">
+      🗓️ Ngày bắt đầu yêu: <strong id="displayStartDate">03/09/2026</strong>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-title">Cài đặt thông tin</div>
+      
+      <div class="form-group">
+        <label>Ngày bắt đầu yêu:</label>
+        <input type="date" id="inputStartDate">
+      </div>
+
+      <div class="form-group">
+        <label>Link nhạc MP3 nền (Tùy chọn):</label>
+        <input type="text" id="inputMusicUrl" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label>Link ảnh Khánh:</label>
+        <input type="text" id="inputImgMale" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label>Link ảnh Huyền:</label>
+        <input type="text" id="inputImgFemale" placeholder="https://...">
+      </div>
+
+      <div class="form-group">
+        <label>Lời nhắn / Câu ngôn tình:</label>
+        <input type="text" id="inputQuote">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-btn btn-cancel" id="closeSettings">Hủy</button>
+        <button class="btn-btn btn-save" id="saveSettings">Lưu thay đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULTS = {
+      loveStartDate: '2026-09-03',
+      maleName: 'Khánh',
+      femaleName: 'Huyền',
+      maleImg: 'https://cdn-media.sforum.vn/storage/app/media/anhthem/meme-tinh-yeu-61.jpg',
+      femaleImg: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqijrBOF5VjYNDdYOz5QfTgH6IZaX6nEHAYBD2xnY3WSKbHyzbLPkIuAo&s=10',
+      quote: 'Trong hàng triệu người trên thế giới, anh thật may mắn khi tìm thấy em.',
+      musicUrl: 'https://files.catbox.moe/9p9x0w.mp3',
+      maleBday: { month: 12, day: 24, year: 2001 },
+      femaleBday: { month: 11, day: 1, year: 2004 }
+    };
+
+    const HOLIDAYS = [
+      { name: 'Valentine', month: 2, day: 14, icon: '💖' },
+      { name: 'Quốc tế Phụ nữ', month: 3, day: 8, icon: '🌹' },
+      { name: 'Phụ nữ Việt Nam', month: 10, day: 20, icon: '💐' },
+      { name: 'Giáng Sinh', month: 12, day: 25, icon: '🎄' },
+      { name: 'Tết Dương Lịch', month: 1, day: 1, icon: '🎆' }
+    ];
+
+    let store = { ...DEFAULTS };
+
+    function loadStorage() {
+      const saved = localStorage.getItem('khanh_huyen_love_data');
+      if (saved) {
+        try { store = { ...DEFAULTS, ...JSON.parse(saved) }; } catch (e) {}
+      }
+      applyDataToUI();
+    }
+
+    function applyDataToUI() {
+      document.getElementById('nameMale').textContent = store.maleName;
+      document.getElementById('nameFemale').textContent = store.femaleName;
+      document.getElementById('imgMale').src = store.maleImg;
+      document.getElementById('imgFemale').src = store.femaleImg;
+      document.getElementById('loveQuote').textContent = `"${store.quote}"`;
+
+      const audio = document.getElementById('bgAudio');
+      if (audio.querySelector('source').src !== store.musicUrl) {
+        audio.querySelector('source').src = store.musicUrl;
+        audio.load();
+      }
+
+      const [y, m, d] = store.loveStartDate.split('-');
+      document.getElementById('displayStartDate').textContent = `${d}/${m}/${y}`;
+    }
+
+    // --- TIME CALCULATIONS ---
+    function updateLoveCounter() {
+      const now = new Date();
+      const start = new Date(store.loveStartDate + 'T00:00:00');
+      
+      if (now < start) {
+        document.getElementById('totalDays').textContent = 0;
+        document.getElementById('subYears').textContent = 0;
+        document.getElementById('subMonths').textContent = 0;
+        document.getElementById('subDays').textContent = 0;
+        updateMilestones(0, start);
+        return;
+      }
+
+      const diffTime = Math.max(0, now - start);
+      const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      let years = now.getFullYear() - start.getFullYear();
+      let months = now.getMonth() - start.getMonth();
+      let days = now.getDate() - start.getDate();
+
+      if (days < 0) {
+        months--;
+        const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += lastMonth.getDate();
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      document.getElementById('totalDays').textContent = totalDays.toLocaleString('vi-VN');
+      document.getElementById('subYears').textContent = years;
+      document.getElementById('subMonths').textContent = months;
+      document.getElementById('subDays').textContent = days;
+
+      updateMilestones(totalDays, start);
+    }
+
+    // --- MILESTONES (Cứ đúng 50 ngày một lần) ---
+    function updateMilestones(currentDays, startDate) {
+      const nextTarget = (Math.floor(currentDays / 50) + 1) * 50;
+      
+      const targetDate = new Date(startDate);
+      targetDate.setDate(targetDate.getDate() + nextTarget);
+
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      targetDate.setHours(0,0,0,0);
+
+      const daysLeft = Math.round((targetDate - now) / (1000 * 60 * 60 * 24));
+      const formattedDate = `${String(targetDate.getDate()).padStart(2,'0')}/${String(targetDate.getMonth()+1).padStart(2,'0')}/${targetDate.getFullYear()}`;
+
+      document.getElementById('milestoneTitle').textContent = `Cột mốc ${nextTarget} ngày`;
+      document.getElementById('milestoneSub').textContent = formattedDate;
+      renderBadge('milestoneDays', daysLeft);
+    }
+
+    function getDaysUntilNext(month, day) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      let target = new Date(currentYear, month - 1, day);
+      
+      now.setHours(0,0,0,0);
+      target.setHours(0,0,0,0);
+
+      if (target < now) { target.setFullYear(currentYear + 1); }
+      const diff = Math.round((target - now) / (1000 * 60 * 60 * 24));
+      return { days: diff, dateStr: `${String(day).padStart(2,'0')}/${String(month).padStart(2,'0')}` };
+    }
+
+    function updateCountdowns() {
+      const maleCd = getDaysUntilNext(store.maleBday.month, store.maleBday.day);
+      renderBadge('cdDaysMale', maleCd.days);
+
+      const femaleCd = getDaysUntilNext(store.femaleBday.month, store.femaleBday.day);
+      renderBadge('cdDaysFemale', femaleCd.days);
+
+      let nearest = null;
+      let minDays = Infinity;
+
+      HOLIDAYS.forEach(h => {
+        const cd = getDaysUntilNext(h.month, h.day);
+        if (cd.days < minDays) {
+          minDays = cd.days;
+          nearest = { ...h, days: cd.days, dateStr: cd.dateStr };
+        }
+      });
+
+      if (nearest) {
+        document.getElementById('holidayTitle').textContent = nearest.name;
+        document.getElementById('holidaySub').textContent = nearest.dateStr;
+        document.getElementById('holidayIcon').textContent = nearest.icon;
+        renderBadge('holidayDays', nearest.days);
+      }
+    }
+
+    function renderBadge(elementId, days) {
+      const el = document.getElementById(elementId);
+      if (days === 0) {
+        el.textContent = 'Hôm nay! 🎉';
+        el.classList.add('today');
+      } else {
+        el.textContent = `Còn ${days} ngày`;
+        el.classList.remove('today');
+      }
+    }
+
+    // --- MUSIC PLAYER ---
+    const audio = document.getElementById('bgAudio');
+    const musicBtn = document.getElementById('musicBtn');
+
+    musicBtn.onclick = () => {
+      if (audio.paused) {
+        audio.play().then(() => {
+          musicBtn.classList.add('playing');
+        }).catch(e => console.log(e));
+      } else {
+        audio.pause();
+        musicBtn.classList.remove('playing');
+      }
+    };
+
+    // --- INTERACTIVE HEART EXPLOSION ---
+    const heartBtn = document.getElementById('interactiveHeart');
+    heartBtn.onclick = (e) => {
+      const rect = heartBtn.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const emojis = ['❤️', '💖', '💕', '✨', '🌸', '🥰', '💌'];
+
+      for (let i = 0; i < 18; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'burst-heart';
+        particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 80 + Math.random() * 120;
+        const dx = Math.cos(angle) * velocity + 'px';
+        const dy = Math.sin(angle) * velocity + 'px';
+        const rot = (Math.random() * 360 - 180) + 'deg';
+
+        particle.style.left = centerX + 'px';
+        particle.style.top = centerY + 'px';
+        particle.style.setProperty('--dx', dx);
+        particle.style.setProperty('--dy', dy);
+        particle.style.setProperty('--rot', rot);
+
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1200);
+      }
+    };
+
+    // --- BACKGROUND FLOATING HEARTS ---
+    function createHearts() {
+      const container = document.getElementById('heartsBg');
+      const heartIcons = ['❤️', '💖', '🌸', '✨', '💕'];
+      for (let i = 0; i < 15; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'heart-particle';
+        heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (6 + Math.random() * 6) + 's';
+        heart.style.animationDelay = (Math.random() * 5) + 's';
+        heart.style.fontSize = (14 + Math.random() * 16) + 'px';
+        container.appendChild(heart);
+      }
+    }
+
+    // --- MODAL HANDLERS ---
+    const modal = document.getElementById('settingsModal');
+    document.getElementById('openSettings').onclick = () => {
+      document.getElementById('inputStartDate').value = store.loveStartDate;
+      document.getElementById('inputMusicUrl').value = store.musicUrl;
+      document.getElementById('inputImgMale').value = store.maleImg;
+      document.getElementById('inputImgFemale').value = store.femaleImg;
+      document.getElementById('inputQuote').value = store.quote;
+      modal.classList.add('active');
+    };
+
+    document.getElementById('closeSettings').onclick = () => modal.classList.remove('active');
+
+    document.getElementById('saveSettings').onclick = () => {
+      const newStartDate = document.getElementById('inputStartDate').value;
+      const newMusicUrl = document.getElementById('inputMusicUrl').value.trim();
+      const newMaleImg = document.getElementById('inputImgMale').value.trim();
+      const newFemaleImg = document.getElementById('inputImgFemale').value.trim();
+      const newQuote = document.getElementById('inputQuote').value.trim();
+
+      if (newStartDate) store.loveStartDate = newStartDate;
+      if (newMusicUrl) store.musicUrl = newMusicUrl;
+      if (newMaleImg) store.maleImg = newMaleImg;
+      if (newFemaleImg) store.femaleImg = newFemaleImg;
+      if (newQuote) store.quote = newQuote;
+
+      localStorage.setItem('khanh_huyen_love_data', JSON.stringify(store));
+      applyDataToUI();
+      updateLoveCounter();
+      modal.classList.remove('active');
+    };
+
+    // INIT
+    loadStorage();
+    createHearts();
+    updateLoveCounter();
+    updateCountdowns();
+    setInterval(updateLoveCounter, 60000);
+  </script>
+</body>
+</html>
